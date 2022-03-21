@@ -1,0 +1,1 @@
+export type ConfirmLink = `${string}://${string}:${number}/auth/confirm/?token=${string}`

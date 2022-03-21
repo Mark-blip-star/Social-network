@@ -1,0 +1,45 @@
+version: "3.3"
+
+volumes:
+  pgdata:
+  redis:
+services:
+
+  redis:
+    image: redis:6
+    container_name: redis
+    restart: on-failure
+    volumes:
+      - redis:/var/lib/postgres/data
+    environment:
+      - REDIS_PASSWORD=password
+      - REDIS_USER=redis
+      - REDIS_DB=kino
+    ports:
+      - 5060:5060
+
+
+  postgres:
+    image: postgres:13
+    environment:
+        POSTGRES_PASSWORD: password
+        POSTGRES_USER: postgres
+        POSTGRES_DB: test
+    restart: always
+    volumes:
+      - pgdata:/var/lib/postgres/data
+    ports:
+      - 5432:5432
+
+  app:
+    image: node:12
+    container_name: app
+    command: bash -c "npm i && npm run start:dev"
+    restart: always
+    working_dir: /var/www/app
+    volumes:
+      - ./:/var/www/app:cached
+    depends_on:
+      - postgres
+    ports:
+      - 3000:3000
