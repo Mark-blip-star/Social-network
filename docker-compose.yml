@@ -4,6 +4,16 @@ volumes:
   pgdata:
   redis:
 services:
+  #  s3:
+  #    image: minio/minio
+  #    ports:
+  #      - "9001:9001"
+  #    volumes:
+  #      - ./storage/minio:/data
+  #    environment:
+  #      MINIO_ROOT_USER: minioadmin
+  #      MINIO_ROOT_PASSWORD: minioadmin
+  #    command: server --address localhost:33905 /data
 
   redis:
     image: redis:6
@@ -18,13 +28,12 @@ services:
     ports:
       - 5060:5060
 
-
   postgres:
     image: postgres:13
     environment:
-        POSTGRES_PASSWORD: password
-        POSTGRES_USER: postgres
-        POSTGRES_DB: test
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+      POSTGRES_DB: test
     restart: always
     volumes:
       - pgdata:/var/lib/postgres/data

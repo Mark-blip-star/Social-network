@@ -13,9 +13,12 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe());
   await app.listen(3000);
+
   const configService: ConfigService = app.get(ConfigService);
 
   const databaseConnectionService = app.get(DatabaseConnectionService);
+
+  app.use(cookieParser(configService.get<string>("REDIS_SECRET")));
 
   const redisClient = new Redis(databaseConnectionService.getRedisConfig());
 
@@ -23,7 +26,6 @@ async function bootstrap() {
 
   const sessionStore = new redisStore({ client: redisClient });
 
-  app.use(cookieParser(configService.get<string>("REDIS_SECRET")));
   app.use(
     session({
       name: configService.get<string>("COOKIE_NAME"),
