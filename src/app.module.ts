@@ -14,6 +14,9 @@ import { join } from "path";
 import { AuthModule } from "./auth/auth.module";
 import { PostsModule } from "./posts/posts.module";
 import { UploadModule } from "./upload/upload.module";
+import { FilesModule } from './files/files.module';
+import { LikesModule } from './likes/likes.module';
+import { CommentsModule } from './comments/comments.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -36,6 +39,9 @@ import { UploadModule } from "./upload/upload.module";
     AuthModule,
     PostsModule,
     UploadModule,
+    FilesModule,
+    LikesModule,
+    CommentsModule,
   ],
 
   controllers: [AppController],

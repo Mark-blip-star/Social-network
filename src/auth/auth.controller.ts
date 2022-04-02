@@ -19,8 +19,8 @@ export class AuthController {
 
   @Post(`login`)
   @UseGuards(loginWithGuard)
-  async login(): Promise<void> {
-    return;
+  async login(@Req() req): Promise<void> {
+    return req.user;
   }
 
   @Post("logout")

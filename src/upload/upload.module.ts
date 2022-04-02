@@ -8,7 +8,7 @@ import { ConfigModule } from "@nestjs/config";
   imports: [
     ConfigModule,
     MinioModule.register({
-      endPoint: `172.17.0.1`,
+      endPoint: `192.168.0.109`,
       port: 9000,
       useSSL: false,
       accessKey: "minioadmin",

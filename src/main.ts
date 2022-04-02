@@ -23,7 +23,6 @@ async function bootstrap() {
   const redisClient = new Redis(databaseConnectionService.getRedisConfig());
 
   const redisStore = connectRedis(session);
-
   const sessionStore = new redisStore({ client: redisClient });
 
   app.use(

@@ -3,44 +3,47 @@ import { UploadService } from "../upload/upload.service";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
 import { Posts } from "./entity/post.entity";
+import { Files } from "../files/entity/file.entity";
+import { BufferFile } from "../upload/entity/upload.entity";
+import { FilesService } from "../files/files.service";
+import { LikesService } from "../likes/likes.service";
+import { isEqual, isNull } from "lodash";
 
-interface returnInterface {
-  image_url: string;
-  message: string;
-}
-//: Promise<{ uri: string; id: number } | { message: string }>
+const arrEXT: string[] = [`image/png`, `image/jpeg`];
 @Injectable()
 export class PostsService {
   constructor(
     @InjectRepository(Posts) private readonly postEntity: Repository<Posts>,
-    private readonly upLoadSerivce: UploadService
+    @InjectRepository(Files) private readonly fileEntity: Repository<Files>,
+    private readonly fileService: FilesService,
+    private readonly upLoadSerivce: UploadService,
+    private readonly likesService: LikesService
   ) {}
   async createPost(
-    data,
-    images
-  ): Promise<{ uri: string[] } | { message: string }> {
-    let uri: string[] = [];
-
-    if (!images.length) {
-      const res = await this.upLoadSerivce.uploadSingle(images);
-      uri.push(res.image_url);
-    } else {
-      const some = await this.upLoadSerivce.uploadMany(images);
-      some.image_url.forEach((e) => uri.push(e));
-    }
-
+    title: string,
+    description: string,
+    image: BufferFile[]
+  ): Promise<{ message: string }> {
     const post = await this.postEntity.save({
-      title: data.title,
-      description: data.description,
-      files: uri,
+      title,
+      description,
     });
 
-    if (!uri || !post) {
-      return new BadRequestException({ message: "Bad" });
-    }
+    if (isNull(post))
+      throw new BadRequestException({ message: "Post create error" });
 
+    await Promise.all(
+      image.map(async (buffer) => {
+        if (!arrEXT.includes(buffer.mimetype))
+          throw new BadRequestException({ message: "ext err" });
+        const { url } = await this.upLoadSerivce.upload(buffer);
+        await this.fileService.create(post, url);
+      })
+    );
+
+    await this.likesService.createLikes(post);
     return {
-      uri,
+      message: "create successfully",
     };
   }
 }

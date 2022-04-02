@@ -1,5 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { UserStatus } from "../../common/enums/user.enums";
+import { Likes } from "../../likes/entity/likes.entity";
 
 @Entity("users")
 export class User {
@@ -23,4 +24,7 @@ export class User {
 
   @Column({ default: false })
   emailActivated: boolean;
+
+  @OneToMany(() => Likes, (likes) => likes.user)
+  likes: Likes[];
 }

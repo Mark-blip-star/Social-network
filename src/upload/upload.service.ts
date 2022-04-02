@@ -1,14 +1,21 @@
-import { HttpException, HttpStatus, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  HttpException,
+  HttpStatus,
+  Injectable,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { BufferFile } from "./entity/upload.entity";
-import * as crypto from "crypto";
 import { MinioService } from "nestjs-minio-client";
+import { v4 as uuidv4 } from "uuid";
+
+const fileTypes = ["jpeg", `png`, `jpg`, `mp4`];
 
 @Injectable()
 export class UploadService {
-  private baseBucket: string;
-  private minioEndPoint: string;
-  private minioPort: number;
+  private readonly baseBucket: string;
+  private readonly minioEndPoint: string;
+  private readonly minioPort: number;
 
   constructor(
     private readonly minio: MinioService,
@@ -24,36 +31,16 @@ export class UploadService {
   }
 
   public async upload(file: BufferFile, baseBucket: string = this.baseBucket) {
-    let temp_filename = Date.now().toString();
-    let hashedFileName = crypto
-      .createHash("md5")
-      .update(temp_filename)
-      .digest("hex");
-    let ext = file.originalname.substring(
-      file.originalname.lastIndexOf("."),
-      file.originalname.length
-    );
-    const metaData = {
-      "Content-Type": file.mimetype,
-      "X-Amz-Meta-Testing": 1234,
-    };
-    let filename = hashedFileName + ext;
-    const fileName: string = `${filename}`;
-    const fileBuffer = file.buffer;
-    const put = await this.client.putObject(
-      baseBucket,
-      fileName,
-      fileBuffer,
-      metaData,
-      function (err, res) {
-        if (err)
-          throw new HttpException(`${err.message}`, HttpStatus.BAD_REQUEST);
-      }
-    );
+    try {
+      const fileName = uuidv4();
+      await this.client.putObject(baseBucket, fileName, file.buffer);
 
-    return {
-      url: `${this.minioEndPoint}:${this.minioPort}/buckets/${this.baseBucket}/${fileName}`,
-    };
+      return {
+        url: `${this.minioEndPoint}:${this.minioPort}/buckets/${this.baseBucket}/${fileName}`,
+      };
+    } catch (err) {
+      throw new BadRequestException(err);
+    }
   }
 
   async delete(objetName: string, baseBucket: string = this.baseBucket) {
@@ -64,34 +51,5 @@ export class UploadService {
           HttpStatus.BAD_REQUEST
         );
     });
-  }
-
-  async uploadSingle(image: BufferFile) {
-    try {
-      let uploaded_image = await this.upload(image);
-      return {
-        image_url: uploaded_image.url,
-        message: "Successfully uploaded to MinIO S3",
-      };
-    } catch (e) {
-      throw new Error(e);
-    }
-  }
-
-  async uploadMany(image: BufferFile[]) {
-    try {
-      const arr = [];
-      await Promise.all([
-        image.map(async (e) => {
-          return await this.upload(e).then((res) => arr.push(res));
-        }),
-      ]);
-      return {
-        image_url: arr,
-        message: "Successfully uploaded to MinIO S3",
-      };
-    } catch (e) {
-      throw new Error(e);
-    }
   }
 }

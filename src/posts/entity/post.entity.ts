@@ -1,4 +1,12 @@
-import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm";
+import { Files } from "../../files/entity/file.entity";
+import { Likes } from "../../likes/entity/likes.entity";
 import { User } from "../../user/entities/user.entity";
 
 @Entity("posts")
@@ -6,21 +14,23 @@ export class Posts {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ type: "varchar", nullable: true })
-  @ManyToOne(() => User, (user) => user.id)
+  @OneToOne(() => User)
   author: string;
 
-  @Column({ type: "varchar", nullable: false })
-  files: string[];
+  @OneToMany(() => Files, (files) => files.posts)
+  files: Files[];
 
-  @Column({ type: "varchar", nullable: false })
-  title: string;
-
-  @Column({ type: "varchar", nullable: false })
-  description: string;
+  @Column({ type: "boolean", default: true })
+  draft: boolean;
 
   @Column({ type: "varchar", nullable: true })
-  likes: string;
+  title: string;
+
+  @Column({ type: "varchar", nullable: true })
+  description: string;
+
+  @OneToMany(() => Likes, (like) => like.post)
+  likes: Posts[];
 
   @Column({ type: "varchar", nullable: true })
   comments: string;
