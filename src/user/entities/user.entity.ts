@@ -1,6 +1,17 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import {
+  Column,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  OneToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm";
 import { UserStatus } from "../../common/enums/user.enums";
 import { Likes } from "../../likes/entity/likes.entity";
+import { Comments } from "../../comments/entity/comment.entity";
+import { Profile } from "../../profile/entity/profile.entity";
+import { Posts } from "../../posts/entity/post.entity";
 
 @Entity("users")
 export class User {
@@ -27,4 +38,10 @@ export class User {
 
   @OneToMany(() => Likes, (likes) => likes.user)
   likes: Likes[];
+
+  @OneToMany(() => Comments, (comments) => comments.author)
+  comments: Comments[];
+
+  @OneToMany(() => Posts, (posts) => posts.author)
+  author: Posts;
 }

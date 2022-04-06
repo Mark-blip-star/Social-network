@@ -1,6 +1,8 @@
 import {
   Column,
   Entity,
+  JoinColumn,
+  ManyToOne,
   OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
@@ -8,14 +10,17 @@ import {
 import { Files } from "../../files/entity/file.entity";
 import { Likes } from "../../likes/entity/likes.entity";
 import { User } from "../../user/entities/user.entity";
+import { Comments } from "../../comments/entity/comment.entity";
+import { Profile } from "../../profile/entity/profile.entity";
 
 @Entity("posts")
 export class Posts {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(() => User)
-  author: string;
+  @ManyToOne(() => User, (user) => user.author)
+  @JoinColumn({ name: "author" })
+  author: User;
 
   @OneToMany(() => Files, (files) => files.posts)
   files: Files[];
@@ -32,6 +37,9 @@ export class Posts {
   @OneToMany(() => Likes, (like) => like.post)
   likes: Posts[];
 
-  @Column({ type: "varchar", nullable: true })
-  comments: string;
+  @OneToMany(() => Comments, (comments) => comments.post)
+  comments: Posts[];
+
+  @ManyToOne(() => Profile, (profile) => profile.posts)
+  profile: Profile;
 }

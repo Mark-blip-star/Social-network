@@ -14,9 +14,14 @@ import { join } from "path";
 import { AuthModule } from "./auth/auth.module";
 import { PostsModule } from "./posts/posts.module";
 import { UploadModule } from "./upload/upload.module";
-import { FilesModule } from './files/files.module';
-import { LikesModule } from './likes/likes.module';
-import { CommentsModule } from './comments/comments.module';
+import { FilesModule } from "./files/files.module";
+import { LikesModule } from "./likes/likes.module";
+import { CommentsModule } from "./comments/comments.module";
+import { LogoController } from "./logo/logo.controller";
+import { LogoService } from "./logo/logo.service";
+import { LogoModule } from "./logo/logo.module";
+import { FollowersModule } from './followers/followers.module';
+import { FollowingModule } from './following/following.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
@@ -42,6 +47,9 @@ import { CommentsModule } from './comments/comments.module';
     FilesModule,
     LikesModule,
     CommentsModule,
+    LogoModule,
+    FollowersModule,
+    FollowingModule,
   ],
 
   controllers: [AppController],

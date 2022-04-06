@@ -20,13 +20,12 @@ services:
     container_name: redis
     restart: on-failure
     volumes:
-      - redis:/var/lib/postgres/data
+      - redis:/var/lib/redis/data
     environment:
-      - REDIS_PASSWORD=password
       - REDIS_USER=redis
-      - REDIS_DB=kino
+      - REDIS_DB=0
     ports:
-      - 5060:5060
+      - "6379:6379"
 
   postgres:
     image: postgres:13
@@ -50,5 +49,6 @@ services:
       - ./:/var/www/app:cached
     depends_on:
       - postgres
+      - redis
     ports:
       - 3000:3000

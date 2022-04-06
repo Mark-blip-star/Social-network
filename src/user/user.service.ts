@@ -1,15 +1,25 @@
-import { ConflictException, Injectable } from "@nestjs/common";
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+} from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { InjectRepository } from "@nestjs/typeorm";
 import { User } from "./entities/user.entity";
 import { Repository } from "typeorm";
 import { UserCreateDto } from "./dto/UserCreateDto";
-import { alreadyExistsMessage } from "../common/messages/error.messages";
+import {
+  alreadyExistsMessage,
+  createError,
+} from "../common/messages/error.messages";
 import { hashSync } from "bcrypt";
 import { TokenService } from "../token/token.service";
 import { ConfirmLink } from "./types/confirm";
 import { MailMessage } from "../mail/types/mail.type";
 import { MailService } from "../mail/mail.service";
+import { ProfileService } from "../profile/profile.service";
+import { isNull } from "lodash";
+import { userCreateSuccessfully } from "../common/messages/crud.messages";
 
 @Injectable()
 export class UserService {
@@ -19,6 +29,7 @@ export class UserService {
 
   constructor(
     @InjectRepository(User) private readonly userEntity: Repository<User>,
+    private readonly profileService: ProfileService,
     private readonly configService: ConfigService,
     private readonly tokenService: TokenService,
     private readonly mailService: MailService
@@ -34,19 +45,23 @@ export class UserService {
     if (getUserByEmail)
       return new ConflictException(alreadyExistsMessage(user.email));
 
-    const { firstName, email } = await this.userEntity.save({
+    const createdUser: User = await this.userEntity.save({
       ...user,
       password: this.hashPassword(user.password),
-      // profile: await this.profileService.createProfile(),
     });
 
-    const confirmEmail = await this.getConfirmEmail(firstName, email);
+    const profile = await this.profileService.createUserProfile(createdUser);
+
+    if (isNull(profile)) throw new BadRequestException(createError(profile));
+
+    const confirmEmail = await this.getConfirmEmail(
+      createdUser.firstName,
+      createdUser.email
+    );
+
     await this.mailService.sendMailMessage(confirmEmail);
 
-    return {
-      message:
-        "The account was successfully created. A confirmation email was sent to you",
-    };
+    return userCreateSuccessfully();
   }
 
   private async getConfirmEmail(
@@ -83,6 +98,10 @@ export class UserService {
 
   public hashPassword(password: string): string {
     return hashSync(password, 5);
+  }
+
+  public async getUserById(id): Promise<User> {
+    return await this.userEntity.findOne(id);
   }
 
   public async upDateUserEmailConfirm(email: string, status): Promise<void> {

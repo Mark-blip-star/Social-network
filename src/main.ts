@@ -1,18 +1,21 @@
 import { NestFactory } from "@nestjs/core";
 import { AppModule } from "./app.module";
 import Redis from "ioredis";
+import cookieParser from "cookie-parser";
 import connectRedis from "connect-redis";
 import session from "express-session";
-import { ConfigService } from "@nestjs/config";
 import passport from "passport";
-import cookieParser from "cookie-parser";
 import { DatabaseConnectionService } from "./config/database-connection/database-connection.service";
 import { ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, { bodyParser: true });
+
+  app.enableCors();
   app.useGlobalPipes(new ValidationPipe());
-  await app.listen(3000);
+
+  app.enableCors();
 
   const configService: ConfigService = app.get(ConfigService);
 
@@ -23,6 +26,7 @@ async function bootstrap() {
   const redisClient = new Redis(databaseConnectionService.getRedisConfig());
 
   const redisStore = connectRedis(session);
+
   const sessionStore = new redisStore({ client: redisClient });
 
   app.use(
@@ -39,7 +43,10 @@ async function bootstrap() {
       resave: false,
     })
   );
+
   app.use(passport.initialize());
   app.use(passport.session());
+
+  await app.listen(configService.get<number>("BACKEND_PORT"));
 }
 bootstrap();

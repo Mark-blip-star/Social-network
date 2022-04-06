@@ -7,6 +7,8 @@ import IORedis from "ioredis";
 import { Posts } from "../../posts/entity/post.entity";
 import { Files } from "../../files/entity/file.entity";
 import { Likes } from "../../likes/entity/likes.entity";
+import { Comments } from "../../comments/entity/comment.entity";
+import { Profile } from "../../profile/entity/profile.entity";
 
 @Injectable()
 export class DatabaseConnectionService {
@@ -24,7 +26,7 @@ export class DatabaseConnectionService {
       synchronize: true,
       retryAttempts: 3,
 
-      entities: [User, Roles, Posts, Files, Likes],
+      entities: [User, Roles, Posts, Files, Likes, Comments, Profile],
       migrationsRun: true,
       migrations: ["./migrations/*.ts"],
 

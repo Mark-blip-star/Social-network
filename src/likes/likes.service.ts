@@ -9,7 +9,7 @@ export class LikesService {
     @InjectRepository(Likes) private readonly likesEntity: Repository<Likes>
   ) {}
 
-  async createLikes(post, likes = 0) {
-    await this.likesEntity.save({ likes, post });
+  async createLikes(post, user) {
+    await this.likesEntity.save({ post, user });
   }
 }
